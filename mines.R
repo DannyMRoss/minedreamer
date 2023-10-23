@@ -167,7 +167,7 @@ game <- function(){
           FLAGS[i] <<- TRUE
           BOARD[i] <<- "F"
         } else if (CHORD) {
-          ichord <- c(i,setdiff(adjacentA(i, CELLS!=0), OPEN))
+          ichord <- c(i,setdiff(adjacentA(i, CELLS!=0), c(which(FLAGS),OPEN)))
           ichordmines <- adjacentA(i, MINES!=0)
           BOARD[ichord] <<- CELLS[ichord]
           if (length(ichordmines)>0){
@@ -217,19 +217,3 @@ game <- function(){
 }
 
 game()
-
-
-
-# nflags <- length(adjacentA(i, FLAGS))
-# if (nflags==CELLS[i]){
-#   ichord <- setdiff(adjacentA(i, CELLS!=0), OPEN)
-#   ichordmines <- ichord[ichord %in% iMINES]
-#   BOARD[ichord] <<- CELLS[ichord]
-#   if (!is.null(ichordmines)){
-#     BOARD[ichordmines] <<- "X"
-#     message("KABOOOOOM!")
-#     print(BOARD)
-#     running=FALSE
-#     replay()
-#   }
-
