@@ -1,4 +1,7 @@
 
+library(tidyverse)
+library(data.table)
+
 board <- function(DIM, N_MINES){
   A <- matrix(0, DIM, DIM)
   MINE_P <- sample(1:(DIM^2), N_MINES)
@@ -92,11 +95,42 @@ dig <- function(H, HOLES, visited=NULL, notvisited=NULL){
 
 }
 
-pit <- function(H, HOLES){
+pit <- function(H, HOLES, CELLS){
 
   ADJHOLES <- dig(H, HOLES)
   ADJCELLS <- unique(unlist(lapply(ADJHOLES, adjacentA,CELLS!=0)))
   return(sort(unique(c(ADJHOLES, ADJCELLS))))
+}
+
+dtboard <- function(M){
+  DT <- data.table(X=rep(1:nrow(M), each=ncol(M)),
+                   Y=rep(1:ncol(M), times=nrow(M)),
+                   L=as.vector(M))
+  return(DT)
+}
+
+plot_board <- function(BOARD, CELLS){
+  DT <- dtboard(BOARD)
+  vals <- sort(unique(as.vector(CELLS)))
+  colors <- c("grey50","black", hcl.colors(length(vals)-1, "Batlow"))
+  DT[, color := factor(L, levels=c("","X",vals))]
+  DT[, fill := 1]
+  DT[L!="", fill := 2]
+  DT[L=="X", fill := 3]
+  DT[, fill := factor(fill, levels=1:3)]
+  DT[, LAB := L]
+  DT[L=="0", LAB := ""]
+
+  p <- ggplot(DT, aes(x=X,y=Y, label=LAB, color=color, fill=fill)) +
+    geom_tile(color="grey10", linewidth = 0.5) +
+    geom_text(size=10) +
+    scale_y_reverse() +
+    scale_color_manual(values=colors) +
+    scale_fill_manual(values=c("grey50","grey70","red")) +
+    theme_void() +
+    theme(legend.position = "none")
+
+
 }
 
 replay <- function(){
@@ -108,128 +142,114 @@ replay <- function(){
   }
 }
 
-game <- function(){
-
-    DIM <<- as.numeric(readline("Enter Dimension: "))
-    N_MINES <<- as.numeric(readline("Enter Number of Mines: "))
-    BASE <<- as.numeric(readline("Enter Base: "))
-    message("Enter row, column (\"F\" to flag, \"C\" to chord)")
-
-    BOARD <<- matrix("", DIM, DIM)
-    FIRST <<- TRUE
-    OPEN <<- NULL
-    FLAGS <<- matrix(FALSE, DIM, DIM)
-
-    running=TRUE
-    while (running){
-
-      print(BOARD)
-      FLAG <<- FALSE
-      CHORD <<- FALSE
-
-      rp <<- function() {
-        input <- readline("")
-
-        if (input=="F"){
-          message("Place flag")
-          input <- readline("")
-          FLAG <<- TRUE
-        }
-
-        if (input=="C"){
-          message("Open all neighbors")
-          input <- readline("")
-          CHORD <<- TRUE
-        }
-
-        input_values <- unlist(strsplit(input, "[,\\s]+"))
-        move <<- c(as.numeric(input_values[1]), as.numeric(input_values[2]))
-        i <<- index(move[1], move[2], DIM)
-      }
-
-      play <<- function() {
-        if (FIRST){
-          if (BASE==1){
-            MINES <<- minesum(openboard(DIM, N_MINES, i))
-          } else{
-            MINES <<- power(minesum(openboard(DIM, N_MINES, i)), BASE)
-          }
-          message("ROW/COL ADJACENT MINES ADD!")
-          CELLS <<- cells(MINES)
-          iMINES <<- which(MINES==1)
-          iCELLS <<- which(CELLS!=0)
-          HOLES <<- CELLS==0 & MINES==0
-          #OPEN <<- c(OPEN, i)
-          FIRST <<- FALSE
-        }
-
-        if (FLAG){
-          FLAGS[i] <<- TRUE
-          BOARD[i] <<- "F"
-        } else if (CHORD) {
-          ichord <- c(i,setdiff(adjacentA(i, CELLS!=0), OPEN))
-          ichordmines <- adjacentA(i, MINES!=0)
-          BOARD[ichord] <<- CELLS[ichord]
-          if (length(ichordmines)>0){
-            BOARD[ichordmines] <<- "X"
-            message("KABOOOOOM!")
-            print(BOARD)
-            running=FALSE
-            replay()
-          }
-        } else if (i %in% iMINES) {
-          BOARD[i] <<- "X"
-          message("KABOOOOOM!")
-          print(BOARD)
-          running=FALSE
-          replay()
-        } else{
-          if (HOLES[i]){
-            ipit <- pit(i, HOLES)
-            OPEN <<- c(OPEN, ipit)
-            BOARD[ipit] <<- CELLS[ipit]
-          } else{
-            BOARD[i] <<- CELLS[i]
-          }
-
-          OPEN <<- c(OPEN, i)
-
-          if (all(iCELLS %in% OPEN)){
-            message("WINNER!")
-            print(BOARD)
-            running=FALSE
-            replay()
-          }
-        }
-      }
-
-      tryCatch(
-        expr = {
-          rp()
-          play()
-        },
-        error = function(e){
-          rp()
-          play()
-        }
-      )
-    }
-}
-
-game()
-
-
-
-# nflags <- length(adjacentA(i, FLAGS))
-# if (nflags==CELLS[i]){
-#   ichord <- setdiff(adjacentA(i, CELLS!=0), OPEN)
-#   ichordmines <- ichord[ichord %in% iMINES]
-#   BOARD[ichord] <<- CELLS[ichord]
-#   if (!is.null(ichordmines)){
-#     BOARD[ichordmines] <<- "X"
-#     message("KABOOOOOM!")
-#     print(BOARD)
-#     running=FALSE
-#     replay()
-#   }
+# game <- function(){
+#
+#     DIM <<- as.numeric(readline("Enter Dimension: "))
+#     N_MINES <<- as.numeric(readline("Enter Number of Mines: "))
+#     BASE <<- as.numeric(readline("Enter Base: "))
+#     message("Enter row, column (\"F\" to flag, \"C\" to chord)")
+#
+#     BOARD <<- matrix("", DIM, DIM)
+#     FIRST <<- TRUE
+#     OPEN <<- NULL
+#     FLAGS <<- matrix(FALSE, DIM, DIM)
+#
+#     running=TRUE
+#     while (running){
+#
+#       plot_board(BOARD, CELLS)
+#       FLAG <<- FALSE
+#       CHORD <<- FALSE
+#
+#       rp <<- function() {
+#         input <- readline("")
+#
+#         if (input=="F"){
+#           message("Place flag")
+#           input <- readline("")
+#           FLAG <<- TRUE
+#         }
+#
+#         if (input=="C"){
+#           message("Open all neighbors")
+#           input <- readline("")
+#           CHORD <<- TRUE
+#         }
+#
+#         input_values <- unlist(strsplit(input, "[,\\s]+"))
+#         move <<- c(as.numeric(input_values[1]), as.numeric(input_values[2]))
+#         i <<- index(move[1], move[2], DIM)
+#       }
+#
+#       play <<- function() {
+#         if (FIRST){
+#           if (BASE==1){
+#             MINES <<- minesum(openboard(DIM, N_MINES, i))
+#           } else{
+#             MINES <<- power(minesum(openboard(DIM, N_MINES, i)), BASE)
+#           }
+#           message("ROW/COL ADJACENT MINES ADD!")
+#           CELLS <<- cells(MINES)
+#           iMINES <<- which(MINES!=0)
+#           iCELLS <<- which(CELLS!=0)
+#           HOLES <<- CELLS==0 & MINES==0
+#           OPEN <<- c(OPEN, i)
+#           FIRST <<- FALSE
+#         }
+#
+#
+#         if (FLAG){
+#           FLAGS[i] <<- TRUE
+#           BOARD[i] <<- "F"
+#         } else if (CHORD) {
+#           ichord <- c(i,setdiff(adjacentA(i, MINES==0), OPEN))
+#           ichordmines <- adjacentA(i, MINES!=0)
+#           BOARD[ichord] <<- CELLS[ichord]
+#           if (length(ichordmines)>0){
+#             BOARD[ichordmines] <<- "X"
+#             message("KABOOOOOM!")
+#             plot_board(BOARD, CELLS)
+#             running=FALSE
+#             replay()
+#           }
+#         } else if (i %in% iMINES) {
+#           BOARD[i] <<- "X"
+#           message("KABOOOOOM!")
+#           plot_board(BOARD, CELLS)
+#           running=FALSE
+#           replay()
+#         } else{
+#           if (HOLES[i]){
+#             ipit <- pit(i, HOLES, CELLS)
+#             OPEN <<- c(OPEN, ipit)
+#             BOARD[ipit] <<- CELLS[ipit]
+#           } else{
+#             BOARD[i] <<- CELLS[i]
+#           }
+#
+#           OPEN <<- c(OPEN, i)
+#
+#           if (all(iCELLS %in% OPEN)){
+#             message("WINNER!")
+#             plot_board(BOARD, CELLS)
+#             running=FALSE
+#             replay()
+#           }
+#         }
+#       }
+#
+#       tryCatch(
+#         expr = {
+#           rp()
+#           play()
+#         },
+#         error = function(e){
+#           rp()
+#           play()
+#         }
+#       )
+#     }
+# }
+#
+# game()
 
