@@ -37,7 +37,7 @@ ui <- fluidPage(
       }
     "))
   ),
-  titlePanel("Minesweeper"),
+  titlePanel("Minedreamer"),
   mainPanel(
     div(
       id = "plot-container",
