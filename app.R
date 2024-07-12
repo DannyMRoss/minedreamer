@@ -100,8 +100,7 @@ server <- function(input, output, session) {
       p <- ggplot(DT, aes(x = X, y = Y, label = LAB, color = color, fill = fill)) +
         geom_tile(color = "grey10", linewidth = 0.5) +
         coord_fixed(ratio = 1) +
-        #geom_text() +
-        geom_fit_text() +
+        geom_fit_text(grow=T) +
         scale_y_reverse() +
         scale_color_manual(values = colors) +
         scale_fill_manual(values = c("grey70", "grey50", "grey50","red")) +
