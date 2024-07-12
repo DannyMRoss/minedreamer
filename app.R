@@ -1,3 +1,6 @@
+library(tidyverse)
+library(ggfittext)
+library(data.table)
 library(shiny)
 library(shinythemes)
 
@@ -29,19 +32,13 @@ ui <- fluidPage(
         width: 100%;
         height: 100%;
       }
-      #game_board {
-        width: auto !important;
-        height: auto !important;
-        max-width: 100%;
-        max-height: 100%;
-      }
     "))
   ),
   titlePanel("Minedreamer"),
   mainPanel(
     div(
       id = "plot-container",
-      plotOutput("game_board", click = "move")
+      plotOutput("game_board", click = "move", width = "100%")
     ),
     checkboxInput("flag_checkbox", "Flag", value = FALSE),
     checkboxInput("chord_checkbox", "Chord", value = FALSE),
@@ -87,31 +84,35 @@ server <- function(input, output, session) {
 
   output$game_board <- renderPlot({
     req(input$dim, input$mines, input$base)
-    DT <- dtboard(rv$BOARD)
-    vals <- sort(unique(as.vector(rv$CELLS)))
-    colors <- c("grey50", "black", "black",hcl.colors(length(vals) - 1, "Batlow"))
-    DT[, color := factor(L, levels = c("", "X", "F", vals))]
-    DT[, fill := 1]
-    DT[L == "", fill := 2]
-    DT[L == "F", fill := 3]
-    DT[L == "X", fill := 4]
-    DT[, fill := factor(fill, levels = 1:4)]
-    DT[, LAB := L]
-    DT[L == "0", LAB := ""]
+    if (!is.null(rv$BOARD)){
+      DT <- dtboard(rv$BOARD)
+      vals <- sort(unique(as.vector(rv$CELLS)))
+      colors <- c("grey50", "black", "black",hcl.colors(length(vals) - 1, "Batlow"))
+      DT[, color := factor(L, levels = c("", "X", "F", vals))]
+      DT[, fill := 1]
+      DT[L == "", fill := 2]
+      DT[L == "F", fill := 3]
+      DT[L == "X", fill := 4]
+      DT[, fill := factor(fill, levels = 1:4)]
+      DT[, LAB := L]
+      DT[L == "0", LAB := ""]
 
-    p <- ggplot(DT, aes(x = X, y = Y, label = LAB, color = color, fill = fill)) +
-      geom_tile(color = "grey10", linewidth = 0.5) +
-      coord_fixed(ratio = 1) +
-      geom_text(size = 10) +
-      scale_y_reverse() +
-      scale_color_manual(values = colors) +
-      scale_fill_manual(values = c("grey50", "grey70", "grey70","red")) +
-      theme_void() +
-      theme(legend.position = "none",
-            plot.background = element_rect(fill = "black"),
-            panel.background = element_rect(fill = "black")
-            )
-    p
+      p <- ggplot(DT, aes(x = X, y = Y, label = LAB, color = color, fill = fill)) +
+        geom_tile(color = "grey10", linewidth = 0.5) +
+        coord_fixed(ratio = 1) +
+        #geom_text() +
+        geom_fit_text() +
+        scale_y_reverse() +
+        scale_color_manual(values = colors) +
+        scale_fill_manual(values = c("grey70", "grey50", "grey50","red")) +
+        theme_void() +
+        theme(legend.position = "none",
+              plot.background = element_rect(fill = "black"),
+              panel.background = element_rect(fill = "black")
+        )
+      p
+    }
+
 
   }, bg="black")
 

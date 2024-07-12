@@ -1,6 +1,3 @@
-library(tidyverse)
-library(data.table)
-
 board <- function(DIM, N_MINES){
   A <- matrix(0, DIM, DIM)
   MINE_P <- sample(1:(DIM^2), N_MINES)
