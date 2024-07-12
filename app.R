@@ -149,7 +149,7 @@ server <- function(input, output, session) {
     ))
   }
 
-  modal_start("Welcome to Minesweeper", " ")
+  modal_start("Welcome...", " ")
 
 
   update_board <- function(i, rv) {
@@ -199,9 +199,9 @@ server <- function(input, output, session) {
 
     if (rv$GAMEOVER) {
       if (rv$WINNER) {
-        show_modal("Congratulations!", "You won! Do you want to play again?")
+        show_modal("You win.", "Good for you. Do you want to play again?")
       } else {
-        show_modal("Game Over", "You lost! Do you want to play again?")
+        show_modal("Game Over.", "You lost! Do you want to play again?")
       }
     }
   }
