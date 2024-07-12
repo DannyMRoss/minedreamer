@@ -223,8 +223,6 @@ server <- function(input, output, session) {
     rv$MOVE <- c(round(input$move$y), round(input$move$x))
     rv$i <- index(rv$MOVE[1], rv$MOVE[2], rv$DIM)
     update_board(rv$i, rv)
-    print(rv$CELLS)
-    print(rv$MINES)
   })
 
 }

@@ -1,4 +1,3 @@
-
 library(tidyverse)
 library(data.table)
 
@@ -109,40 +108,16 @@ dtboard <- function(M){
   return(DT)
 }
 
-plot_board <- function(BOARD, CELLS){
-  DT <- dtboard(BOARD)
-  vals <- sort(unique(as.vector(CELLS)))
-  colors <- c("grey50","black", hcl.colors(length(vals)-1, "Batlow"))
-  DT[, color := factor(L, levels=c("","X",vals))]
-  DT[, fill := 1]
-  DT[L!="", fill := 2]
-  DT[L=="X", fill := 3]
-  DT[, fill := factor(fill, levels=1:3)]
-  DT[, LAB := L]
-  DT[L=="0", LAB := ""]
+# replay <- function(){
+#   r <- menu(c("Yes", "No"), title="Play again?")
+#   if (r==1){
+#     game()
+#   } else{
+#     message("Carry on ...")
+#   }
+# }
 
-  p <- ggplot(DT, aes(x=X,y=Y, label=LAB, color=color, fill=fill)) +
-    geom_tile(color="grey10", linewidth = 0.5) +
-    geom_text(size=10) +
-    scale_y_reverse() +
-    scale_color_manual(values=colors) +
-    scale_fill_manual(values=c("grey50","grey70","red")) +
-    theme_void() +
-    theme(legend.position = "none")
-
-
-}
-
-replay <- function(){
-  r <- menu(c("Yes", "No"), title="Play again?")
-  if (r==1){
-    game()
-  } else{
-    message("Carry on ...")
-  }
-}
-
-# game <- function(){
+# text_game <- function(){
 #
 #     DIM <<- as.numeric(readline("Enter Dimension: "))
 #     N_MINES <<- as.numeric(readline("Enter Number of Mines: "))
@@ -250,6 +225,5 @@ replay <- function(){
 #       )
 #     }
 # }
-#
-# game()
+
 
